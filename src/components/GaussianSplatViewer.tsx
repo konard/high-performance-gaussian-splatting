@@ -2,6 +2,10 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import * as GaussianSplats3D from '@mkkellogg/gaussian-splats-3d';
 import * as THREE from 'three';
 
+// Enable verbose logging for debugging (can be toggled via console: window.DEBUG_SPLAT_VIEWER = true)
+const isDebugEnabled = () => typeof window !== 'undefined' && (window as unknown as { DEBUG_SPLAT_VIEWER?: boolean }).DEBUG_SPLAT_VIEWER === true;
+const debugLog = (...args: unknown[]) => { if (isDebugEnabled()) console.log('[SplatViewer]', ...args); };
+
 export interface SplatModel {
   name: string;
   url: string;
@@ -68,11 +72,13 @@ export function GaussianSplatViewer({
 
     const initViewer = async () => {
       try {
+        debugLog('Initializing viewer...');
         setIsLoading(true);
         setError(null);
         setLoadProgress(0);
 
-        // Create the viewer
+        // Create the viewer with rootElement set to our container
+        // The library will create its own renderer and add it to the container
         viewer = new GaussianSplats3D.Viewer({
           cameraUp: [0, -1, 0],
           initialCameraPosition: [0, -5, 15],
@@ -84,10 +90,12 @@ export function GaussianSplatViewer({
           dynamicScene: false,
           sharedMemoryForWorkers: false,
         });
+        debugLog('Viewer created');
 
         // Check if component was unmounted during viewer creation
         if (abortController.signal.aborted) {
-          viewer.dispose();
+          debugLog('Aborted during viewer creation');
+          try { await viewer.dispose(); } catch { /* ignore */ }
           return;
         }
 
@@ -98,6 +106,7 @@ export function GaussianSplatViewer({
           rotation: model.rotation,
           scale: model.scale,
         }));
+        debugLog('Loading models:', modelConfigs.map(m => m.path));
 
         // Add the splat scene(s)
         // showLoadingUI is set to false to prevent duplicate loading indicators
@@ -108,10 +117,12 @@ export function GaussianSplatViewer({
             onProgress?.(percentComplete);
           }
         });
+        debugLog('Models loaded');
 
         // Check if component was unmounted during loading
         if (abortController.signal.aborted) {
-          viewer.dispose();
+          debugLog('Aborted after loading');
+          try { await viewer.dispose(); } catch { /* ignore */ }
           return;
         }
 
@@ -127,6 +138,7 @@ export function GaussianSplatViewer({
         } catch {
           // Splat count not available
         }
+        debugLog('Splat count:', splatCount, 'Load time:', loadTime);
 
         setStats({
           fps: 0,
@@ -141,6 +153,7 @@ export function GaussianSplatViewer({
         if (!abortController.signal.aborted) {
           viewer.start();
           viewerRef.current = viewer;
+          debugLog('Viewer started');
 
           // Add FPS monitoring via animation frame
           const animate = () => {
@@ -151,10 +164,12 @@ export function GaussianSplatViewer({
           };
           requestAnimationFrame(animate);
         } else {
-          viewer.dispose();
+          debugLog('Aborted before start');
+          try { await viewer.dispose(); } catch { /* ignore */ }
         }
 
       } catch (err) {
+        debugLog('Error during initialization:', err);
         // Only report errors if the component is still mounted
         // (errors during unmount are expected and should be ignored)
         if (!abortController.signal.aborted) {
@@ -166,10 +181,10 @@ export function GaussianSplatViewer({
         // Dispose the viewer if it was created but loading failed
         if (viewer && viewer !== viewerRef.current) {
           try {
-            viewer.dispose();
+            await viewer.dispose();
           } catch (disposeErr) {
             // Ignore disposal errors during error handling
-            console.warn('Error disposing viewer after failed initialization:', disposeErr);
+            debugLog('Error disposing viewer after failed initialization:', disposeErr);
           }
         }
       }
@@ -179,21 +194,28 @@ export function GaussianSplatViewer({
 
     // Cleanup function
     return () => {
+      debugLog('Cleanup: aborting and disposing...');
       // Signal that the component is unmounting
       abortController.abort();
 
       // Dispose the viewer if it exists
+      // Note: The library's dispose() may throw "removeChild" errors because
+      // it tries to remove rootElement from document.body, but our rootElement
+      // is inside React's component tree, not directly under document.body.
+      // This error is harmless and can be safely ignored.
       if (viewerRef.current) {
-        try {
-          viewerRef.current.dispose();
-        } catch (err) {
-          // Log disposal errors in development for debugging
-          if (import.meta.env.DEV) {
-            console.warn('Error disposing viewer during cleanup:', err);
-          }
-        }
+        const viewerToDispose = viewerRef.current;
         viewerRef.current = null;
+        viewerToDispose.dispose().catch((err) => {
+          // Expected error: "Failed to execute 'removeChild' on 'Node'"
+          // This occurs because the library assumes rootElement is a child of document.body
+          // In React, our container is nested inside the component tree
+          if (import.meta.env.DEV && isDebugEnabled()) {
+            debugLog('Expected error during viewer disposal (safe to ignore):', err);
+          }
+        });
       }
+      debugLog('Cleanup complete');
     };
   }, [models, onLoad, onProgress, onError, updateFPS]);
 
@@ -211,6 +233,8 @@ export function GaussianSplatViewer({
         if (renderer) {
           renderer.setSize(clientWidth, clientHeight);
         }
+        // Force a re-render after resize
+        viewerRef.current.forceRenderNextFrame?.();
       }
     };
 

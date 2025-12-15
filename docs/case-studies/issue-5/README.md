@@ -4,9 +4,15 @@
 
 **Issue**: Gaussian Splatting viewer shows a black screen after the model finishes loading, despite stats indicating successful load.
 
-**Root Cause**: React StrictMode's double-rendering behavior combined with improper async lifecycle management in the GaussianSplatViewer component.
+**Root Cause**:
+1. React StrictMode's double-rendering behavior interferes with the GaussianSplats3D library's lifecycle
+2. The library's `dispose()` method tries to call `document.body.removeChild(rootElement)` even when rootElement is inside React's component tree (not a direct child of document.body)
+3. CSS height calculation issues causing canvas dimensions to be incorrect
 
-**Solution**: Implemented AbortController-based cleanup mechanism to properly handle component unmount during async operations.
+**Solution**:
+1. Disable React StrictMode (the library doesn't support rapid mount/unmount cycles)
+2. Handle `dispose()` errors gracefully using Promise `.catch()`
+3. Fix CSS positioning for `.viewer-canvas` to use `position: absolute`
 
 **Status**: ✅ Resolved
 
