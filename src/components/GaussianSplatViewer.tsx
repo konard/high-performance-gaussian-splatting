@@ -63,6 +63,8 @@ export function GaussianSplatViewer({
 
     const container = containerRef.current;
     const startTime = performance.now();
+    const abortController = new AbortController();
+    let viewer: GaussianSplats3D.Viewer | null = null;
 
     const initViewer = async () => {
       try {
@@ -71,7 +73,7 @@ export function GaussianSplatViewer({
         setLoadProgress(0);
 
         // Create the viewer
-        const viewer = new GaussianSplats3D.Viewer({
+        viewer = new GaussianSplats3D.Viewer({
           cameraUp: [0, -1, 0],
           initialCameraPosition: [0, -5, 15],
           initialCameraLookAt: [0, 0, 0],
@@ -83,7 +85,11 @@ export function GaussianSplatViewer({
           sharedMemoryForWorkers: false,
         });
 
-        viewerRef.current = viewer;
+        // Check if component was unmounted during viewer creation
+        if (abortController.signal.aborted) {
+          viewer.dispose();
+          return;
+        }
 
         // Prepare model configurations
         const modelConfigs = models.map((model) => ({
@@ -97,9 +103,17 @@ export function GaussianSplatViewer({
         // showLoadingUI is set to false to prevent duplicate loading indicators
         // (we use our own custom loading UI instead of the library's built-in one)
         await viewer.addSplatScenes(modelConfigs, false, (percentComplete: number) => {
-          setLoadProgress(Math.round(percentComplete));
-          onProgress?.(percentComplete);
+          if (!abortController.signal.aborted) {
+            setLoadProgress(Math.round(percentComplete));
+            onProgress?.(percentComplete);
+          }
         });
+
+        // Check if component was unmounted during loading
+        if (abortController.signal.aborted) {
+          viewer.dispose();
+          return;
+        }
 
         const loadTime = Math.round(performance.now() - startTime);
 
@@ -123,23 +137,41 @@ export function GaussianSplatViewer({
         setIsLoading(false);
         onLoad?.();
 
-        // Start the viewer
-        viewer.start();
+        // Start the viewer only if component is still mounted
+        if (!abortController.signal.aborted) {
+          viewer.start();
+          viewerRef.current = viewer;
 
-        // Add FPS monitoring via animation frame
-        const animate = () => {
-          if (viewerRef.current) {
-            updateFPS();
-            requestAnimationFrame(animate);
-          }
-        };
-        requestAnimationFrame(animate);
+          // Add FPS monitoring via animation frame
+          const animate = () => {
+            if (viewerRef.current && !abortController.signal.aborted) {
+              updateFPS();
+              requestAnimationFrame(animate);
+            }
+          };
+          requestAnimationFrame(animate);
+        } else {
+          viewer.dispose();
+        }
 
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load model';
-        setError(errorMessage);
-        setIsLoading(false);
-        onError?.(err instanceof Error ? err : new Error(errorMessage));
+        // Only report errors if the component is still mounted
+        // (errors during unmount are expected and should be ignored)
+        if (!abortController.signal.aborted) {
+          const errorMessage = err instanceof Error ? err.message : 'Failed to load model';
+          setError(errorMessage);
+          setIsLoading(false);
+          onError?.(err instanceof Error ? err : new Error(errorMessage));
+        }
+        // Dispose the viewer if it was created but loading failed
+        if (viewer && viewer !== viewerRef.current) {
+          try {
+            viewer.dispose();
+          } catch (disposeErr) {
+            // Ignore disposal errors during error handling
+            console.warn('Error disposing viewer after failed initialization:', disposeErr);
+          }
+        }
       }
     };
 
@@ -147,11 +179,18 @@ export function GaussianSplatViewer({
 
     // Cleanup function
     return () => {
+      // Signal that the component is unmounting
+      abortController.abort();
+
+      // Dispose the viewer if it exists
       if (viewerRef.current) {
         try {
           viewerRef.current.dispose();
-        } catch {
-          // Ignore dispose errors
+        } catch (err) {
+          // Log disposal errors in development for debugging
+          if (import.meta.env.DEV) {
+            console.warn('Error disposing viewer during cleanup:', err);
+          }
         }
         viewerRef.current = null;
       }
