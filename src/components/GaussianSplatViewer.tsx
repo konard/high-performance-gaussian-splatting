@@ -80,15 +80,22 @@ export function GaussianSplatViewer({
         // Create the viewer with rootElement set to our container
         // The library will create its own renderer and add it to the container
         viewer = new GaussianSplats3D.Viewer({
-          cameraUp: [0, -1, 0],
-          initialCameraPosition: [0, -5, 15],
+          // Use standard Y-up camera orientation
+          cameraUp: [0, 1, 0],
+          initialCameraPosition: [0, 2, 8],
           initialCameraLookAt: [0, 0, 0],
           rootElement: container,
-          sceneRevealMode: GaussianSplats3D.SceneRevealMode.Gradual,
+          // Use Instant reveal mode for immediate visibility
+          sceneRevealMode: GaussianSplats3D.SceneRevealMode.Instant,
           antialiased: true,
           focalAdjustment: 1.0,
           dynamicScene: false,
           sharedMemoryForWorkers: false,
+          // Disable GPU-accelerated sort to fix black screen issue on some systems
+          // See: https://github.com/mkkellogg/GaussianSplats3D/issues/345
+          gpuAcceleratedSort: false,
+          // Enable self-driven mode so the viewer manages its own render loop
+          selfDrivenMode: true,
         });
         debugLog('Viewer created');
 
