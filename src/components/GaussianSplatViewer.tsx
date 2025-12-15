@@ -94,7 +94,9 @@ export function GaussianSplatViewer({
         }));
 
         // Add the splat scene(s)
-        await viewer.addSplatScenes(modelConfigs, true, (percentComplete: number) => {
+        // showLoadingUI is set to false to prevent duplicate loading indicators
+        // (we use our own custom loading UI instead of the library's built-in one)
+        await viewer.addSplatScenes(modelConfigs, false, (percentComplete: number) => {
           setLoadProgress(Math.round(percentComplete));
           onProgress?.(percentComplete);
         });
