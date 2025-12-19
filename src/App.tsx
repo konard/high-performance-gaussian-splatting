@@ -7,12 +7,16 @@ import './App.css';
 function App() {
   const [selectedModel, setSelectedModel] = useState<SplatModel | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [key, setKey] = useState(0);
 
   const handleSelectModel = useCallback((model: SplatModel) => {
+    // Clear the current model first to ensure proper cleanup
+    setSelectedModel(null);
     setIsLoading(true);
-    setSelectedModel(model);
-    setKey((prev) => prev + 1);
+    // Use setTimeout to allow React to unmount the previous viewer before mounting the new one
+    // This prevents the double-loading issue caused by batched state updates
+    setTimeout(() => {
+      setSelectedModel(model);
+    }, 0);
   }, []);
 
   const handleLoad = useCallback(() => {
@@ -92,7 +96,6 @@ function App() {
         <div className="viewer-wrapper">
           {selectedModel ? (
             <GaussianSplatViewer
-              key={key}
               models={[selectedModel]}
               onLoad={handleLoad}
               onError={handleError}
