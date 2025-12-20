@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { GaussianSplatViewer, type SplatModel } from './components/GaussianSplatViewer';
 import { ModelSelector } from './components/ModelSelector';
 import { AVAILABLE_MODELS } from './data/models';
@@ -9,14 +9,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSelectModel = useCallback((model: SplatModel) => {
-    // Clear the current model first to ensure proper cleanup
-    setSelectedModel(null);
+    setSelectedModel(model);
     setIsLoading(true);
-    // Use setTimeout to allow React to unmount the previous viewer before mounting the new one
-    // This prevents the double-loading issue caused by batched state updates
-    setTimeout(() => {
-      setSelectedModel(model);
-    }, 0);
   }, []);
 
   const handleLoad = useCallback(() => {
@@ -27,6 +21,14 @@ function App() {
     console.error('Failed to load model:', error);
     setIsLoading(false);
   }, []);
+
+  // Memoize the models array to prevent unnecessary re-renders
+  // Without this, a new array is created on every render, causing the GaussianSplatViewer
+  // to unmount and remount even when the selectedModel hasn't changed
+  const modelArray = useMemo(() =>
+    selectedModel ? [selectedModel] : [],
+    [selectedModel]
+  );
 
   return (
     <div className="app">
@@ -96,7 +98,7 @@ function App() {
         <div className="viewer-wrapper">
           {selectedModel ? (
             <GaussianSplatViewer
-              models={[selectedModel]}
+              models={modelArray}
               onLoad={handleLoad}
               onError={handleError}
             />

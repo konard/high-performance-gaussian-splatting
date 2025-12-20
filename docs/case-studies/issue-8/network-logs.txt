@@ -1,0 +1,22 @@
+Network Requests Captured:
+==========================
+
+[GET] https://konard.github.io/high-performance-gaussian-splatting => [301] 
+[GET] https://konard.github.io/high-performance-gaussian-splatting/ => [200] 
+[GET] https://konard.github.io/high-performance-gaussian-splatting/assets/index-XFl2Ftz0.js => [200] 
+[GET] https://konard.github.io/high-performance-gaussian-splatting/assets/index-BjBJZZ76.css => [200] 
+[GET] https://konard.github.io/high-performance-gaussian-splatting/vite.svg => [200] 
+
+*** FIRST MODEL LOAD (timestamp: 202852Z) ***
+[GET] https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/bonsai/bonsai-7k.splat => [302] 
+[GET] https://cas-bridge.xethub.hf.co/xet-bridge-us/65316725220f490dba86929d/ba431bf7e2a5ae3743bc01c3ebcf406af31c445e51069f2a1a8f5be27c5b232e?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=cas%2F20251220%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251220T202852Z&X-Amz-Expires=3600&... => [200] OK
+[GET] blob:https://konard.github.io/eb4fc2ed-f1bd-47b5-a13d-08528d20c2ab => [200] OK
+[GET] blob:https://konard.github.io/233e1ab4-27f7-4bca-b3d0-5e29a2d2677d => [200] OK
+
+*** SECOND MODEL LOAD (timestamp: 202858Z) - 6 SECONDS LATER ***
+[GET] https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/bonsai/bonsai-7k.splat => [302] 
+[GET] https://cas-bridge.xethub.hf.co/xet-bridge-us/65316725220f490dba86929d/ba431bf7e2a5ae3743bc01c3ebcf406af31c445e51069f2a1a8f5be27c5b232e?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=cas%2F20251220%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251220T202858Z&X-Amz-Expires=3600&... => [200] OK
+[GET] blob:https://konard.github.io/2700512c-e92d-4f11-9531-f1b83fbbb251 => [200] OK
+[GET] blob:https://konard.github.io/4fd56d4a-d7e0-415f-bb90-db4263f9c901 => [200] OK
+
+CONCLUSION: Model is being downloaded twice (duplicate network requests)
