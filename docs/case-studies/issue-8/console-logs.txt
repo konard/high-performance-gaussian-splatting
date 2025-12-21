@@ -1,0 +1,37 @@
+Console Logs with Debug Mode Enabled:
+======================================
+
+Timeline of Events:
+-------------------
+
+1. [SplatViewer] Initializing viewer...
+2. [SplatViewer] Viewer created
+3. [SplatViewer] Loading models: [https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/bonsai/bonsai-7k.splat]
+4. [SplatViewer] Models loaded
+5. [SplatViewer] Splat count: 1157138 Load time: 6896
+6. [SplatViewer] Viewer started
+
+*** UNEXPECTED CLEANUP - First viewer is disposed immediately after starting! ***
+7. [SplatViewer] Cleanup: aborting and disposing...
+8. [SplatViewer] Cleanup complete
+
+*** SECOND INITIALIZATION - This is the double loading! ***
+9. [SplatViewer] Initializing viewer...
+10. [SplatViewer] Viewer created
+11. [SplatViewer] Loading models: [https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/bonsai/bonsai-7k.splat]
+12. [SplatViewer] Models loaded
+13. [SplatViewer] Splat count: 1157138 Load time: 5530
+14. [SplatViewer] Viewer started
+
+Result: FPS shows 0 (no rendering happening)
+
+ROOT CAUSE IDENTIFIED:
+======================
+The React component is being unmounted and remounted immediately after the first load completes,
+causing the viewer to be initialized twice. This is visible in the logs where we see:
+- First complete initialization cycle (steps 1-6)
+- Cleanup (steps 7-8)
+- Second complete initialization cycle (steps 9-14)
+
+The issue is likely in App.tsx where handleSelectModel uses setTimeout to set the model,
+which may be causing React to mount/unmount the component multiple times.
