@@ -10,7 +10,8 @@ export interface SplatModel {
   name: string;
   url: string;
   position?: [number, number, number];
-  rotation?: [number, number, number, string];
+  // Rotation as quaternion [x, y, z, w] - identity is [0, 0, 0, 1]
+  rotation?: [number, number, number, number];
   scale?: [number, number, number];
 }
 
