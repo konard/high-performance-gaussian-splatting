@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GaussianSplats3D Test</title>
+  <style>
+    body { margin: 0; padding: 0; overflow: hidden; }
+    #viewer-container { width: 100vw; height: 100vh; }
+    #status { position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 10px; font-family: monospace; z-index: 1000; }
+  </style>
+</head>
+<body>
+  <div id="status">Loading...</div>
+  <div id="viewer-container"></div>
+
+  <script type="module">
+    import * as GaussianSplats3D from '../node_modules/@mkkellogg/gaussian-splats-3d/build/gaussian-splats-3d.module.js';
+
+    const status = document.getElementById('status');
+    const container = document.getElementById('viewer-container');
+
+    const log = (msg) => {
+      console.log(msg);
+      status.innerHTML += '<br>' + msg;
+    };
+
+    async function init() {
+      try {
+        log('Creating viewer...');
+
+        const viewer = new GaussianSplats3D.Viewer({
+          cameraUp: [0, 1, 0],
+          initialCameraPosition: [0, 2, 8],
+          initialCameraLookAt: [0, 0, 0],
+          rootElement: container,
+          sceneRevealMode: GaussianSplats3D.SceneRevealMode.Instant,
+          antialiased: true,
+          focalAdjustment: 1.0,
+          dynamicScene: false,
+          sharedMemoryForWorkers: false,
+          gpuAcceleratedSort: false,
+          selfDrivenMode: true,
+        });
+
+        log('Viewer created, loading model...');
+
+        await viewer.addSplatScene(
+          'https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/bonsai/bonsai-7k.splat',
+          {
+            position: [0, 1, 0],
+            rotation: [0, 0, 0, 1],
+            scale: [1.5, 1.5, 1.5],
+            showLoadingUI: true
+          }
+        );
+
+        log('Model loaded!');
+
+        viewer.start();
+        log('Viewer started!');
+
+        // Monitor FPS
+        let frameCount = 0;
+        let lastTime = performance.now();
+
+        function checkFPS() {
+          frameCount++;
+          const now = performance.now();
+          if (now - lastTime >= 1000) {
+            const fps = Math.round(frameCount * 1000 / (now - lastTime));
+            document.getElementById('status').innerHTML = `FPS: ${fps}`;
+            frameCount = 0;
+            lastTime = now;
+          }
+          requestAnimationFrame(checkFPS);
+        }
+        checkFPS();
+
+      } catch (err) {
+        log('Error: ' + err.message);
+        console.error(err);
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
