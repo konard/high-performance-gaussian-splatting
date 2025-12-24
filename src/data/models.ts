@@ -17,15 +17,15 @@ const FLIP_ROTATION: [number, number, number, number] = [1, 0, 0, 0];
 
 export const AVAILABLE_MODELS: SplatModel[] = [
   {
-    name: 'Bonsai',
-    url: 'https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/bonsai/bonsai-7k.splat',
+    name: 'Garden',
+    url: 'https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/garden/garden-7k.splat',
     position: [0, 1, 0],
     rotation: FLIP_ROTATION,
     scale: [1.5, 1.5, 1.5],
   },
   {
-    name: 'Garden',
-    url: 'https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/garden/garden-7k.splat',
+    name: 'Bonsai',
+    url: 'https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/bonsai/bonsai-7k.splat',
     position: [0, 1, 0],
     rotation: FLIP_ROTATION,
     scale: [1.5, 1.5, 1.5],
