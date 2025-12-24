@@ -101,4 +101,6 @@ See [REQUIREMENTS.md](./REQUIREMENTS.md) for the full project roadmap.
 
 ## License
 
-MIT License - see [LICENSE](./LICENSE) for details.
+This project is released into the **public domain** under the [Unlicense](https://unlicense.org/).
+
+See [LICENSE](./LICENSE) for the full text. You are free to use, modify, distribute, and do anything with this software without any restrictions.
