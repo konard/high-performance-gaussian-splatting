@@ -45,11 +45,12 @@
 
         log('Viewer created, loading model...');
 
+        // Rotation [1, 0, 0, 0] = 180° around X-axis to fix upside-down models
         await viewer.addSplatScene(
           'https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/bonsai/bonsai-7k.splat',
           {
             position: [0, 1, 0],
-            rotation: [0, 0, 0, 1],
+            rotation: [1, 0, 0, 0],
             scale: [1.5, 1.5, 1.5],
             showLoadingUI: true
           }
