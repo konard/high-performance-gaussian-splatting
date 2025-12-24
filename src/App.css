@@ -45,23 +45,15 @@
 .model-selector {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-.model-selector-label {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.7);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .model-selector-dropdown {
-  padding: 0.6rem 0.75rem;
+  padding: 0.75rem 1rem;
   font-size: 0.9rem;
   background-color: rgba(0, 0, 0, 0.7);
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
   min-width: 140px;
@@ -255,13 +247,9 @@
   }
 
   .model-selector-dropdown {
-    padding: 0.5rem 0.6rem;
+    padding: 0.5rem 0.75rem;
     font-size: 0.85rem;
     min-width: 120px;
-  }
-
-  .model-selector-label {
-    font-size: 0.65rem;
   }
 
   .stats-panel {

@@ -15,9 +15,6 @@ export function ModelSelector({
 }: ModelSelectorProps) {
   return (
     <div className="model-selector">
-      <label htmlFor="model-select" className="model-selector-label">
-        Select a model:
-      </label>
       <select
         id="model-select"
         className="model-selector-dropdown"
@@ -30,9 +27,6 @@ export function ModelSelector({
         }}
         disabled={disabled}
       >
-        <option value="" disabled>
-          Choose a model...
-        </option>
         {models.map((model) => (
           <option key={model.name} value={model.name}>
             {model.name}
